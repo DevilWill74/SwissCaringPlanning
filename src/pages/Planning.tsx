@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { User, PlanningDay, DayStatus, STATUS_ICONS } from '../types';
-import { Download, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
+import { Download, ChevronLeft, ChevronRight, MessageCircle, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const STATUS_COLORS: Record<DayStatus, string> = {
@@ -55,6 +55,43 @@ export default function Planning() {
       .gte('date', startDate.toISOString().split('T')[0])
       .lte('date', endDate.toISOString().split('T')[0]);
     setPlanning(data || []);
+  };
+
+  const resetUserMonthStatus = async (userId: string) => {
+    if (!isAdmin()) return;
+
+    try {
+      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const daysInMonth = endDate.getDate();
+
+      // Create an array of planning entries with undefined status
+      const resetEntries = Array.from({ length: daysInMonth }, (_, i) => ({
+        user_id: userId,
+        date: new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1)
+          .toISOString()
+          .split('T')[0],
+        status: 'undefined' as DayStatus,
+        note: null
+      }));
+
+      // Delete existing entries for the month
+      await supabase
+        .from('planning')
+        .delete()
+        .eq('user_id', userId)
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0]);
+
+      // Insert new entries with undefined status
+      await supabase
+        .from('planning')
+        .insert(resetEntries);
+
+      fetchPlanning();
+    } catch (error) {
+      console.error("Erreur lors de la réinitialisation du planning:", error);
+    }
   };
 
   const updateStatus = async (userId: string, date: string, status: DayStatus) => {
@@ -292,8 +329,17 @@ export default function Planning() {
             <tbody className="bg-white divide-y divide-gray-200">
               {nurses.map((nurse) => (
                 <tr key={nurse.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {nurse.username}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center justify-between">
+                    <span>{nurse.username}</span>
+                    {isAdmin() && (
+                      <button
+                        onClick={() => resetUserMonthStatus(nurse.id)}
+                        className="text-red-600 hover:text-red-900"
+                        title="Réinitialiser le planning du mois"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    )}
                   </td>
                   {Array.from({ length: getDaysInMonth() }, (_, i) => {
                     const date = new Date(

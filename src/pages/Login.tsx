@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { Stethoscope } from 'lucide-react';
+import logoSwiss from '../src/logoswiss.png';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -42,7 +43,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <Stethoscope className="h-12 w-12 text-indigo-600" />
+          <img src={logoSwiss} alt="Logo Swiss" className="h-12 w-12" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Planning Infirmier

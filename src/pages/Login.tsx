@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { Stethoscope } from 'lucide-react';
-import logoSwiss from '../src/logoswiss.png';
+import logoSwiss from '/src/logoswiss.png';
 
 export default function Login() {
   const [username, setUsername] = useState('');
